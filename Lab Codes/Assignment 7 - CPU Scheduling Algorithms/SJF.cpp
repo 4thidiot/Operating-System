@@ -1,79 +1,73 @@
-#include <stdio.h>
+#include <bits/stdc++.h>
+using namespace std;
 
-int main()
+int main() 
 {
     int n;
     scanf("%d", &n);
 
-    int at[n], bt[n], pid[n];
+    int at[n], bt[n], orgbt[n], pid[n];
     int ct[n], tat[n], wt[n];
-    int done[n];
+    int gantt[n];
 
     for(int i=0; i<n; i++)
         scanf("%d", &at[i]);
 
     for(int i=0; i<n; i++)
-        scanf("%d", &bt[i]);
-
-    for(int i=0; i<n; i++)
-        pid[i] = i+1;
-
-    for(int i=0; i<n; i++)
-        done[i] = 0;
-
-    int current = 0;
-    int completed = 0;
-
-    while(completed < n)
     {
-        int ready[n], rsize = 0;
+        scanf("%d", &bt[i]);
+        orgbt[i] = bt[i];
+    }
 
-        // Collect arrived processes
+    for(int i=0; i<n; i++)
+        pid[i] = i;
+
+    int timey = 0;
+    int done = 0;
+
+    // make sure time starts at first arrival
+    timey = *min_element(at, at+n);
+
+    while(done < n)
+    {
+        int index = -1;
+        int minbt = INT_MAX;
+
+        // find process with shortest burst that has arrived
         for(int i=0; i<n; i++)
         {
-            if(done[i] == 0 && at[i] <= current)
+            if(bt[i] != -1 && at[i] <= timey)
             {
-                ready[rsize++] = i;
+                if(bt[i] < minbt)
+                {
+                    minbt = bt[i];
+                    index = i;
+                }
             }
         }
 
-        // If no process has arrived yet → jump to earliest arrival time
-        if(rsize == 0)
+        // if nothing arrived yet, move time forward
+        if(index == -1)
         {
-            int nxt = 1000000000;
-            for(int i=0; i<n; i++)
-                if(done[i] == 0 && at[i] < nxt)
-                    nxt = at[i];
-
-            current = nxt;
+            timey++;
             continue;
         }
 
-        // Pick shortest job (minimum BT)
-        int best = ready[0];
-        for(int i=0; i<rsize; i++)
-        {
-            int idx = ready[i];
-            if(bt[idx] < bt[best])
-                best = idx;
-        }
+        // run this process
+        timey += bt[index];
+        bt[index] = -1;      // mark finished
 
-        // Calculate times
-        ct[best] = current + bt[best];
-        tat[best] = ct[best] - at[best];
-        wt[best] = tat[best] - bt[best];
+        ct[index] = timey;
+        tat[index] = ct[index] - at[index];
+        wt[index] = tat[index] - orgbt[index];
 
-        current = ct[best];
-        done[best] = 1;
-        completed++;
+        gantt[done] = index;
+        done++;
     }
 
-    printf("pid AT BT WT TAT\n");
+    // print gantt chart
     for(int i=0; i<n; i++)
-    {
-        printf("%d %d %d %d %d\n",
-               pid[i], at[i], bt[i], wt[i], tat[i]);
-    }
+        cout << gantt[i] << " ";
 
     return 0;
 }
